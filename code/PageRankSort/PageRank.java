@@ -21,10 +21,11 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.partition.HashPartitioner;
+import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 
-class PageRankMapper extends Mapper<Object, Text, Text, Text> {
+class PageRankMapper extends Mapper<Text, Text, Text, Text> {
     private Text resKey = new Text();      // 要传入reduce的key和value
     private Text resValue = new Text();
 

@@ -1,3 +1,4 @@
+package PageRankSort;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -46,24 +47,24 @@ class GetResultReducer extends Reducer<Text, Text, Text, Text> {
     }
 }
 
-public class GetResult {
+public class PageResult {
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
 
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if (otherArgs.length != 2) {
-            System.err.println("PageResult neet 2 paras as input and output");
+            System.err.println("Usage: PageResult <in> <out>");
             System.exit(2);
         }
         Job job = Job.getInstance(conf, "PageResult");
-        job.setJarByClass(GetResult.class);     // 设置配置文件信息
+        job.setJarByClass(PageResult.class);     // 设置配置文件信息
         job.setMapperClass(GetResultMapper.class);
         job.setPartitionerClass(HashPartitioner.class);
         job.setReducerClass(GetResultReducer.class);
         job.setInputFormatClass(KeyValueTextInputFormat.class);// 以/t切割key与value 默认值，不需要配置
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
-        job.setNumReduceTasks(1); //reducer设置为一个，使结果为一个文件
+        //job.setNumReduceTasks(1); //reducer设置为一个，使结果为一个文件
         FileInputFormat.addInputPath(job, new Path(otherArgs[0]));  // 设置输入路径
         FileOutputFormat.setOutputPath(job, new Path(otherArgs[1]));// 设置输出路径
         System.exit(job.waitForCompletion(true) ? 0 : 1);//等待程序结束退出
