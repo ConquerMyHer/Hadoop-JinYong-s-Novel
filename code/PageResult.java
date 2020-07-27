@@ -60,7 +60,7 @@ public class GetResult {
         job.setMapperClass(GetResultMapper.class);
         job.setPartitionerClass(HashPartitioner.class);
         job.setReducerClass(GetResultReducer.class);
-        job.setInputFormatClass(KeyValueTextInputFormat.class);// 以/t切割key与value
+        job.setInputFormatClass(KeyValueTextInputFormat.class);// 以/t切割key与value 默认值，不需要配置
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         job.setNumReduceTasks(1); //reducer设置为一个，使结果为一个文件
