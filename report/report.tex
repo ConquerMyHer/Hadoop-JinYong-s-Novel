@@ -1,0 +1,181 @@
+\documentclass[a4paper,UTF8]{article}
+
+\usepackage[margin=1.25in]{geometry}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{epsfig}
+\usepackage{color}
+\usepackage{mdframed}
+\usepackage{lipsum}
+\usepackage{mathtools}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{mathrsfs}
+\usepackage{amsmath}
+\usepackage[utf8]{inputenc}
+\usepackage[UTF8]{ctex}
+
+\newmdtheoremenv{thm-box}{myThm}
+\newmdtheoremenv{prop-box}{Proposition}
+\newmdtheoremenv{def-box}{define}
+
+\setlength{\evensidemargin}{.25in}
+\setlength{\textwidth}{6in}
+\setlength{\topmargin}{-0.5in}
+\setlength{\topmargin}{-0.5in}
+
+\usepackage{indentfirst}
+\setlength{\parindent}{2em}
+
+\usepackage{subfigure}
+% \setlength{\textheight}{9.5in}
+%%%%%%%%%%%%%%%%%%set header and footer here%%%%%%%%%%%%%%%%%%
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{layout}
+\footskip = 10pt
+\pagestyle{fancy}
+\lhead{2020, Spring}
+\chead{大数据综合处理实验}
+\rhead{金庸的江湖——金庸武侠小说中的人物关系挖掘}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{1pt}  			%header
+\setlength{\skip\footins}{0.5cm}    			
+\renewcommand{\footrulewidth}{0pt}  		
+
+\makeatletter 							
+\def\headrule{{\if@fancyplain\let\headrulewidth\plainheadrulewidth\fi%
+\hrule\@height 1.0pt \@width\headwidth\vskip1pt	
+\hrule\@height 0.5pt\@width\headwidth  			
+\vskip-2\headrulewidth\vskip-1pt}      			
+ \vspace{6mm}}     						
+\makeatother
+
+\graphicspath{{img/}}
+
+\lstset{
+ columns=fixed,
+ basicstyle = \footnotesize,
+ breakatwhitespace=false,         % 设置是否当且仅当在空白处自动中断.
+ breaklines=true,
+ numbers=left,                                        % 在左侧显示行号
+ numberstyle=\tiny\color{gray},                       % 设定行号格式
+ frame=none,                                          % 不显示背景边框
+ backgroundcolor=\color[RGB]{245,245,244},            % 设定背景颜色
+ keywordstyle=\color[RGB]{40,40,255},                 % 设定关键字颜色
+ numberstyle=\footnotesize\color[RGB]{96,96,96},
+ commentstyle=\color[RGB]{0,128,0},                % 设置代码注释的格式
+ stringstyle=\rmfamily\slshape\color[RGB]{128,0,0},   % 设置字符串格式
+ showstringspaces=false,                              % 不显示字符串中的空格
+ language=JAVA,
+ extendedchars=true,
+ escapeinside=''                                       % 设置语言
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\numberwithin{equation}{section}
+\newtheorem{myThm}{myThm}
+\newtheorem*{myDef}{Definition}
+\newtheorem*{mySol}{Solution}
+\newtheorem*{myProof}{Proof}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\newcommand*\diff{\mathop{}\!\mathrm{d}}
+
+\usepackage{multirow}
+\renewcommand\refname{reference}
+\author{组长：韩畅，组员：李展烁、王一之、闫旭芃}
+\begin{document}
+%\listoffigures
+\captionsetup[figure]{labelfont={bf},labelformat={default},labelsep=period,name={图}}
+\title{金庸的江湖——金庸武侠小说中的人物关系挖掘}
+\maketitle
+
+\section{实验规划与设计}
+\subsection{任务分配}
+{171860551, \text{韩畅：组长,算法设计与实验规划，任务六}}\\ \indent
+{171860550, \text{王一之：算法设计与实验规划,任务四}}\\ \indent
+{171860549, \text{闫旭芃：算法设计与实验规划，任务五}}\\ \indent
+{171840565, \text{李展烁：算法设计与实验规划,任务三}}
+\subsection{任务要求}
+
+\subsection{设计思路}
+
+
+\section{实验实现}
+\subsection{任务一}
+todo
+
+\subsection{任务二}
+todo
+
+\subsection{任务三}
+todo
+
+\subsection{任务四:基于人物关系图的PageRank计算}
+\subsubsection{PageRank算法介绍}
+PageRank，又称网页排名，名字源于google创始人之一的Larry Page，是Google公司所使用的对与网页重要性排序的算法。\\
+PageRank通过网页之间的超链接评价网页重要性，它的基本思想是：\\
+\begin{enumerate}[1)]
+    \item 如果一个网页被多个网页所指向，则该网页比较重要
+    \item 如果一个重要的网页指向另一个网页，则另一个网页也比较重要
+\end{enumerate}
+该算法模拟一个上网者，随机打开一个网页，之后随机点击该网页的链接，统计上网者分布在每个网页的概率。\\
+最初，每个网页的概率均等，每次跳转时，网页X将其PR(PageRank)均分到所指向的所有页面，记链接数为L(X),
+于是，经过一次跳转后：\\
+$$
+PR(A)=\frac{PR(B)}{L(B)}+\frac{PR(C)}{L(C)}+\frac{PR(D)}{L(D)}+...
+$$
+我们将每个网页抽象成一个节点，超链接抽象为有向边，共同构成一个图。
+则每次跳转可视为所有页面PR构成的特征向量R与该图的出度表矩阵相乘，即：\\
+$$R=
+\begin{bmatrix}
+    PR(p_1) \\
+    PR(p_2)\\
+    \vdots\\
+    PR(p_n)\\
+\end{bmatrix}
+M=
+\begin{bmatrix}
+    p_1 \rightarrow p_1 & p_2 \rightarrow p_1 & \cdots & p_n \rightarrow p_1\\
+    p_1 \rightarrow p_2 & p_2 \rightarrow p_2 & \cdots & p_n \rightarrow p_2\\
+    \vdots & \vdots & \ddots & \vdots\\
+    p_1 \rightarrow p_n & p_2 \rightarrow p_n & \cdots & p_n \rightarrow p_n\\
+\end{bmatrix}
+$$
+\\
+$$
+R_1=M R_0
+$$
+多次迭代后，PR值趋于稳定，即为最终的PR值。
+
+\subsubsection{设计思路}
+任务四的输入为任务三的输出，格式如下：\\
+人物 [名字$_1$,影响$_1$|名字$_2$,影响$_2$|...|名字$_n$,影响$_n$] \\
+影响$_i$为名字$_i$与该人物名字归一化后的同现次数，表示名字$_i$对该人物的影响权重。\\
+每个人物视为图的一个节点，边权重为二人同现次数
+
+\subsection{任务五}
+todo
+
+\subsection{任务六}
+todo
+
+\section{实验经验总结与改进方向}
+\begin{enumerate}[1)]
+    \item todo
+    \item todo
+\end{enumerate}
+\bibliographystyle{plain}
+\bibliography{ref}
+
+\end{document}
