@@ -1,0 +1,19 @@
+#ifndef RELATIONS_H
+#define RELATIONS_H
+
+#include <QString>
+#include <QList>
+#include <QPair>
+
+class Relations
+{
+public:
+    Relations(QString n, double r);
+    
+private:
+    QString name;
+    double rank;
+    QList<QPair<QString,double>> reList;
+};
+
+#endif // RELATIONS_H
