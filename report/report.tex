@@ -46,7 +46,7 @@
 \footskip = 10pt
 \pagestyle{fancy}
 \lhead{2020, Spring}
-\chead{大数据综合处理实验}
+\chead{ }
 \rhead{金庸的江湖——金庸武侠小说中的人物关系挖掘}
 \cfoot{\thepage}
 \renewcommand{\headrulewidth}{1pt}  			%header
@@ -247,33 +247,67 @@ value：新PageRank值\\
 Reducer阶段整理输出即可
 
 \subsubsection{代码讲解}
-程序可分为三个模块：PageRank、RageResultSort以及调度模块。
+程序可分为三个模块：PageRank、RageResultSort以及调度模块。\\\\
+
 模块一：PageRank\\
-此模块包含了阶段一与阶段二。
+此模块实现了了阶段一与阶段二的任务。
 \begin{figure}[H]
     \centering
-
     \includegraphics[width = 15cm]{PageRankMain.png}
-
     \caption{PageRankMain}
+    \label{PageRankMain}
 \end{figure}
-main函数中配置指定程序运行15次，每次的结果储存在以运行次数为名的文件夹内，下一次迭代的输入为上一次的输出。
-
+图\ref{PageRankMain}为此类的main函数,使job运行15次，每次的结果储存在以运行次数为名的文件夹内，
+下一次迭代的输入为上一次的输出。最终结果储存在“final”文件夹下。由于程序中用不到行号，设置InputFormat为KeyValueTextInputFormat，
+这样会自动以分隔符(默认为$\backslash$t)将一行的内容切割为key和value。\\
 \begin{figure}[H]
     \centering
-
     \includegraphics[width = 15cm]{PageRankMapper.png}
-
-    \caption{PageRankReducer}
+    \caption{PageRankMapper}
+    \label{PageRankMapper}
 \end{figure}
-Mapper阶段,首先
+图\ref{PageRankMapper}为Mapper函数，此阶段,首先通过value中是否有\#号来判断是否是第一次迭代。
+若为不为第一次，提取之前的RP，否则设置默认的PR值为1.0。通过value中的出度表，计算新PR值。向reducer发送“姓名 \#出度表”
+以及“姓名 PR值”两个键值对。\\
 \begin{figure}[H]
     \centering
-
     \includegraphics[width = 15cm]{PageRankReducer.png}
-
     \caption{PageRankReducer}
+    \label{PageRankReducer}
 \end{figure}
+图\ref{PageRankReducer}为Reducer函数,通过\#判断键值对类型，合并格式化后输出。\\\\
+
+模块二：PageResultSort\\
+此模块实现了阶段三的任务。\\
+main函数中同样设置InputFormat为KeyValueTextInputFormat，同时设置reducer数量为1。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{PageSortMapper.png}
+    \caption{PageSortMapper}
+    \label{PageSortMapper}
+\end{figure}
+图\ref{PageSortMapper}为Mapper函数，去除不需要的出度表。为进行排序，将PR值作为key，名字作为value。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{SortDoubleWritable.png}
+    \caption{SortDoubleWritable}
+    \label{SortDoubleWritable}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{RankSortPartitioner.png}
+    \caption{RankSortPartitioner}
+    \label{RankSortPartitioner}
+\end{figure}
+图\ref{RankSortPartitioner}与图\ref{SortDoubleWritable}为重载的Partitioner函数以及SortDoubleWritable类。
+重载Partitioner函数使得以DoubleWritable类型的key进行排序，由于默认DoubleWritable为升序，重载DoubleWritable为自定义SortDoubleWritable进行降序排列。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{PageSortReducer.png}
+    \caption{PageSortReducer}
+    \label{PageSortReducer}
+\end{figure}
+图\ref{PageSortReducer}为Ruducer，将key与value互换位置，保证输出时名字在前。
 
 \subsection{任务五:在人物关系图上的标签传播}
 思路分析：在本实验里，我们拟采用 LPA\(Label Propagation Algorithm\) 标签传播算法对金庸小说中的人物进行聚类。 LPA 是一种半监督的图分析算法，能够为图中的每一个节点打上标签，对图的顶点进行聚类，从而在一张类似社交网络的图中完成社区发现。
@@ -528,7 +562,11 @@ todo
 todo
 
 \subsection{任务四}
-原本迭代次数为20次，在检查中间结果时发现在14次之后，结果变化不大，基本收敛，因此将迭代次数改为15次，节省开销。
+\begin{enumerate}[1)]
+    \item 原本迭代次数为20次，在检查中间结果时发现在14次之后，结果变化不大，基本收敛，因此将迭代次数改为15次，节省时间开销。
+    \item 完整版的PageRank计算会引入随机跳转，避免自环节点以及无出度节点导致无法收敛。而本次数据实际不存在此类节点，因此无需引入，节省计算量。
+    \item PageRank算法原本RP值设置为访问概率1/N，实际上若PR值收敛，则结果与初始值无关。因此设置初始值为1.0以减小小数运算误差。
+\end{enumerate}
 \subsection{任务五}
 LPA当遇到二分图的时候，会出现标签震荡，这里当迭代轮数超过 10 轮后就会开始震荡，因此我们这里可以选择迭代 15 -20轮。
 
