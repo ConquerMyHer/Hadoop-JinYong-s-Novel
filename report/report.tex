@@ -605,9 +605,9 @@ LPA当遇到二分图的时候，会出现标签震荡，这里当迭代轮数�
 todo
 \section{实验经验总结与改进方向}
 \begin{enumerate}[1)]
-    \item todo
+    \item 数据格式中很多地方使用Text传输。可以考虑使用自定义Writable数据格式，来减少序列化时间和传输损耗。
     \item 任务二统计人物同现时，可以考虑根据人物字母顺序，将<a,b>与<b,a>统一为<a,b>。这样任务二mapper和reducer之间减少一倍的传输损耗，任务二的输出结果将减少一倍占用空间，任务三mapper读、任务二reducer写也将减少一倍读写文件时间损耗。实现时可以将任务二mapper中HashSet用TreeSet代替来保证有序，在内部for循环中只发射在外部for循环当前值之后（或之前）的部分。当然任务三中mapper就要修改为：既发射第一个人名又发射第二个人名。之后保持不变。当然也要考虑到TreeSet比HashSet可能要消耗更多时间。
-    \item todo
+    \item 任务三reducer中HashMap的使用是没有必要的。应该使用类似List<Pair<String, Integer>>代替，加快reducer端时间、空间效率。
     \item todo
     \item todo
     \item 在任务五中，对结果进行分析，我们可以看出，相同标签的人物都是在同一本书中的人物。但因为人物同现关
