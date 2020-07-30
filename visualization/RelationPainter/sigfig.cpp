@@ -4,6 +4,7 @@ sigFig::sigFig(Relation *r):rel(r)
 {
     maxRank = 30;
     sigSize = 1;
+    lineTransp = 10;
     highlight = false;
 }
 

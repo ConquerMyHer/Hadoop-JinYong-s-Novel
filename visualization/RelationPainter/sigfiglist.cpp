@@ -5,25 +5,48 @@ sigFigList::sigFigList()
     maxRank = 30;
     vitalNum = 30;
     sigSize = 1;
+    tranp = 10;
     sigLs = *new QList<sigFig*>();
 
     // 自定义可用的颜色列表
-    allColor.append(QColor(192,0,0));
-    allColor.append(QColor(0,192,0));
-    allColor.append(QColor(0,0,192));
-    allColor.append(QColor(192,64,0));
-    allColor.append(QColor(192,0,64));
-    allColor.append(QColor(0,192,64));
-    allColor.append(QColor(0,64,192));
-    allColor.append(QColor(64,192,0));
-    allColor.append(QColor(64,0,192));
-    allColor.append(QColor(128,0,0));
-    allColor.append(QColor(0,128,0));
-    allColor.append(QColor(0,0,128));
-    allColor.append(QColor(128,128,0));
-    allColor.append(QColor(0,128,128));
-    allColor.append(QColor(128,0,128));
+//    allColor.append(QColor(192,0,0));
+//    allColor.append(QColor(0,192,0));
+//    allColor.append(QColor(0,0,192));
+//    allColor.append(QColor(192,64,0));
+//    allColor.append(QColor(192,0,64));
+//    allColor.append(QColor(0,192,64));
+//    allColor.append(QColor(0,64,192));
+//    allColor.append(QColor(64,192,0));
+//    allColor.append(QColor(64,0,192));
+//    allColor.append(QColor(128,0,0));
+//    allColor.append(QColor(0,128,0));
+//    allColor.append(QColor(0,0,128));
+//    allColor.append(QColor(128,128,0));
+//    allColor.append(QColor(0,128,128));
+//    allColor.append(QColor(128,0,128));
 
+    allColor.append(QColor("#44cef6"));
+    allColor.append(QColor("#ff461f"));
+    allColor.append(QColor("#c9dd22"));
+    allColor.append(QColor("#ffa400"));
+    allColor.append(QColor("#177cb0"));
+    allColor.append(QColor("#ff4777"));
+    allColor.append(QColor("#00bc12"));
+    allColor.append(QColor("#ff7500"));
+    allColor.append(QColor("#4b5cc4"));
+    allColor.append(QColor("#c93756"));
+    allColor.append(QColor("#16a951"));
+    allColor.append(QColor("#d9b611"));
+    allColor.append(QColor("#4a4266"));
+    allColor.append(QColor("#f20c00"));
+    allColor.append(QColor("#0c8918"));
+    allColor.append(QColor("#e29c45"));
+    allColor.append(QColor("#8d4bbb"));
+    allColor.append(QColor("#56004f"));
+    allColor.append(QColor("#4c8dae"));
+    allColor.append(QColor("#3d3b4f"));
+    allColor.append(QColor("#725e82"));
+    allColor.append(QColor("#75878a"));
 }
 
 // 原本想搞个随机化，想了想觉得没必要
@@ -69,6 +92,7 @@ void sigFigList::genAll()
     for(sigFig * s: sigLs)
     {
         s->setSigSize(sigSize);
+        s->setTranp(tranp);
         s->genAll(cirR, txtOff, curDeg, curDotR, maxRank, midX, midY);
         curDeg = s->getDeg();
         curDotR = s->getDotR();
