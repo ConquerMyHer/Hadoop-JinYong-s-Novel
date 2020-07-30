@@ -66,7 +66,7 @@ private:
     sigFigList fgLs;// 包含一个sigFigList类的成员，以对关系和显示进行处理
     bool loaded;// 已经装载文件的信号，应当放入sigFigList更好
 
-    const int hlDistance = 10;//控制高亮显示的检测半径，也即灵敏度
-
+    const int hlDistance = 15;//控制高亮显示的检测半径，也即灵敏度
+    int curHlInd;
 };
 #endif // MAINWINDOW_H

@@ -11,6 +11,7 @@
 #include <map>
 #include <iterator>
 #include <QPoint>
+#include <QPainterPath>
 
 #define PI 3.1415926
 
@@ -26,6 +27,7 @@ public:
     // 一系列的更新函数
     void setMaxRank(double m) {maxRank = m;} // 通过更新MaxRank来确定Dot的粗细
     void genDeg(int r, double lasDeg, int lasR);
+    int genTranp(double wei);
     QPair<int,int> calDotXY(double dotDeg);
     void setRXY(int r, int midX, int midY){cirR = r; xMid = midX; yMid = midY;}
     void genDotXY(int r, int midX, int midY);
@@ -47,7 +49,7 @@ public:
     int getYTxt() {return yTxt;}
 
     double getDeg() {return deg;}
-    //    double getDeg180() {return (deg<PI*1/2.0||deg>PI*3/2.0)?deg*180/PI:(deg-PI)*180/PI;}
+    double getDeg180N() {return (deg<PI*1/2.0||deg>PI*3/2.0)?deg*180/PI:(deg-PI)*180/PI;}
     double getDeg180() {return deg*180/PI;}
     int getDotR() {return dotR;}
     int getCirWid() {return cirWid;}
@@ -67,6 +69,7 @@ private:
     double maxRank;// 最大的rank值
     double sigSize;// 由于疏密程度而对图元的修正值
     int lineTransp;// 透明度
+//    int curveTrans;
 
     bool highlight;// 是否需要高亮
 
@@ -83,6 +86,8 @@ private:
     const int maxLineOff = 10;
     const double lowSize = 0.5;// 将曲线压低的比例（避免一团乱麻）0-1
     const QColor hlColor = QColor(0,0,0);// 高亮颜色
+
+    const int baseTrans = 1;
 
     QColor lineColor;// 本色
 
@@ -103,8 +108,9 @@ private:
     int genLineWid(double wei);
     int genDotR();
 
-    // 计算一个简单的贝塞尔曲线点集（估计这里的处理效率会很低，以后有机会一定会改）
-    QList<QPoint> genBesLine(QPoint a, QPoint b, QPoint c);
+//    // 计算一个简单的贝塞尔曲线点集（估计这里的处理效率会很低，以后有机会一定会改）
+//    QList<QPoint> genBesLine(QPoint a, QPoint b, QPoint c);
+    // 已经找到了解决方案
 };
 
 #endif // SIGFIG_H
