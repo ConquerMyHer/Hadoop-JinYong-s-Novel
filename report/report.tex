@@ -166,10 +166,9 @@ Main 主函数类：
 
 \subsection{任务二}
 \subsubsection{设计思路}
-数据输入：每一段中包含的所有人名。
+\par 数据输入：每一段中包含的所有人名。
 \par 数据输出：对于所有的段落，统计所有人名对出现在同一段落中的次数。
-\par 使用HashSet进行去重。
-\par 同现次数在int可表示范围内。
+\par 使用IntWritable表示同现次数，因为同现次数在int可表示范围内。
 
 \subsubsection{程序分析}
 Main 主函数类：
@@ -191,7 +190,7 @@ Main 主函数类：
 \end{figure}
 
 \par Reducer类：
-\par 对于所有的人名对出现次数进行求和。如图\ref{task2-reducer}
+\par 对于key对应的人名对出现次数进行求和。如图\ref{task2-reducer}
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width = 15cm]{task2-reducer.png}
@@ -607,7 +606,7 @@ todo
 \section{实验经验总结与改进方向}
 \begin{enumerate}[1)]
     \item todo
-    \item todo
+    \item 任务二统计人物同现时，可以考虑根据人物字母顺序，将<a,b>与<b,a>统一为<a,b>。这样任务二mapper和reducer之间减少一倍的传输损耗，任务二的输出结果将减少一倍占用空间，任务三mapper读、任务二reducer写也将减少一倍读写文件时间损耗。实现时可以将任务二mapper中HashSet用TreeSet代替来保证有序，在内部for循环中只发射在外部for循环当前值之后（或之前）的部分。当然任务三中mapper就要修改为：既发射第一个人名又发射第二个人名。之后保持不变。当然也要考虑到TreeSet比HashSet可能要消耗更多时间。
     \item todo
     \item todo
     \item todo
