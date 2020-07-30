@@ -65,7 +65,6 @@ class LabelResultReducer extends Reducer<Text, Text, Text, Text> {
     @Override
     protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
         for (Text name : values) {
-            //context.write(name, new Text(key.toString()));  // 将key和value置反
             context.write(new Text(name.toString()+","+key.toString()),new Text(""));//中间加一个逗号
         }
     }
