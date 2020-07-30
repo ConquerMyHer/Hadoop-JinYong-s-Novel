@@ -55,6 +55,8 @@ private slots:
 
     void myMouseMoveHandler(QMouseEvent * e);// 对鼠标点击事件的处理
 
+    void on_transpSlider_valueChanged(int value);
+
 signals:
     void mouseMove(QMouseEvent *event);// 发射的鼠标信号
 

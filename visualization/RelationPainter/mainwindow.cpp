@@ -151,3 +151,9 @@ void MainWindow::myMouseMoveHandler(QMouseEvent * e)
     }
 
 }
+
+void MainWindow::on_transpSlider_valueChanged(int value)
+{
+    fgLs.setTrans(ui->transpSlider->value());
+    this->repaint();
+}

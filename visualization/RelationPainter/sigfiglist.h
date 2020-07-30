@@ -26,6 +26,8 @@ public:
     // 设置函数
     void setVitalNum(int vt) {if (vt >= 20 && vt <= 100) vitalNum = vt;}
     void setSigSize(double sz) {sigSize = sz;}
+    void setTrans(int tr) {tranp = tr;}
+
     // 绘制函数
     void paintDot(QMainWindow * q);
     void paintLine(QMainWindow * q);
@@ -44,6 +46,7 @@ private:
     // 显示数量和显示疏密程度
     int vitalNum;
     double sigSize;
+    int tranp;// 透明度
 
     // 一个包含所有可选颜色的颜色表，进一步改进以改变观感
     QList<QColor> allColor;
