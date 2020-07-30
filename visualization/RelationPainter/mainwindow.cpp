@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     // 尚未装载文件
     loaded = false;
+    curHlInd = 0;
 
     // 对鼠标事件的信号槽连接
     connect(this,SIGNAL(mouseMove(QMouseEvent *)),this,SLOT(myMouseMoveHandler(QMouseEvent *)));
@@ -26,7 +27,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::loadFile()
 {
-//    QTextCodec *codec = QTextCodec::codecForName("GBK");
+    //    QTextCodec *codec = QTextCodec::codecForName("GBK");
 
     //装载文件，存入fgLs的sigLs中
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
@@ -52,7 +53,7 @@ void MainWindow::loadFile()
                 // 以\t为分隔符
                 if (strLs.length()>=2)
                 {
-//                    reLs.append(new Relation(strLs[0], strLs[1].toDouble()));
+                    //                    reLs.append(new Relation(strLs[0], strLs[1].toDouble()));
                     fgLs.sigLs.append(new sigFig(new Relation(strLs[0], strLs[1].toDouble())));
                     for(int i = 1; 2*i+1 < strLs.length();++i)
                     {
@@ -65,7 +66,7 @@ void MainWindow::loadFile()
             }
             // 已装载设置为true（其实是一开始的做法，现在可以用是否为空的判断代替）
             loaded = true;
-//            fgLs.genAll();
+            //            fgLs.genAll();
         }
     }
 }
@@ -90,8 +91,8 @@ void MainWindow::paintEvent(QPaintEvent *)
     if (loaded)
     {
         // 直接调用fgLs的绘制函数绘制全部图元
-//        fgLs.paintDot(this);
-//        fgLs.paintLine(this);
+        //        fgLs.paintDot(this);
+        //        fgLs.paintLine(this);
         fgLs.paintAll(this);
     }
 }
@@ -121,33 +122,59 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     emit mouseMove(event);
 }
 
-// 简易的的距离函数
-double disTo(int x1,int y1,int x2,int y2)
-{
-    return sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
-}
+//// 简易的的距离函数
+//double disTo(int x1,int y1,int x2,int y2)
+//{
+//    return sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+//}
 
 // 对鼠标移动的位置进行是否需要高亮或取消高亮的判断
+// 选取距离鼠标位置最近的人物及其关系进行高亮显示
 void MainWindow::myMouseMoveHandler(QMouseEvent * e)
 {
     int curX = e->x();
     int curY = e->y();
-    for (sigFig * sf:fgLs.sigLs)
+    //    qDebug() << "curX : " << curX << ", curY : " << curY << endl;
+
+    int curMinDis = 100000;
+    int curMinDisInd = 0;
+
+    for (int i = 0; i < fgLs.getVitalNum() && i < fgLs.sigLs.length(); ++i)
     {
+        sigFig * sf = fgLs.sigLs[i];
         int dotX = sf->getXDot();
         int dotY = sf->getYDot();
-        if (disTo(curX,curY,dotX,dotY) <= hlDistance && sf->getHighLight() == false)
+        int curDis = abs(curX-dotX) + abs(curY-dotY);
+//        int curDis = disTo(curX,curY,dotX,dotY);
+        if (curDis < curMinDis)
         {
-            sf->setHighLight(true);
-            this->repaint();
-            break;
+            fgLs.sigLs[curMinDisInd]->setHighLight(false);
+            curMinDisInd = i;
+            curMinDis = curDis;
         }
-        else if (disTo(curX,curY,dotX,dotY) > hlDistance && sf->getHighLight() == true)
+        else
         {
-            sf->setHighLight(false);
-            this->repaint();
-            break;
+            fgLs.sigLs[i]->setHighLight(false);
         }
+        //        if (abs(curX-dotX) + abs(curY-dotY)<=hlDistance && sf->getHighLight() == false)
+        //        {
+        //            sf->setHighLight(true);
+        ////            qDebug() << "dotX : " << dotX << ", dotY : " << dotY << endl;
+        //            this->repaint();
+        //        }
+        //        else if ((abs(curX-dotX) + abs(curY-dotY) > hlDistance) && sf->getHighLight() == true)
+        //        {
+        //            sf->setHighLight(false);
+        ////            qDebug() << "dotX : " << dotX << ", dotY : " << dotY << endl;
+        //            this->repaint();
+
+        //        }
+    }
+    if (curMinDisInd != curHlInd)
+    {
+        fgLs.sigLs[curMinDisInd]->setHighLight(true);
+        this->repaint();
+        curHlInd = curMinDisInd;
     }
 
 }

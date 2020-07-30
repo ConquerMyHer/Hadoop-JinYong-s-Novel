@@ -23,6 +23,8 @@ public:
     void genDegList();
     void genColor();
     void genAll();
+
+    int getVitalNum() {return vitalNum;}
     // 设置函数
     void setVitalNum(int vt) {if (vt >= 20 && vt <= 100) vitalNum = vt;}
     void setSigSize(double sz) {sigSize = sz;}

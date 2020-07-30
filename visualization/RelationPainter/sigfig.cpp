@@ -4,8 +4,14 @@ sigFig::sigFig(Relation *r):rel(r)
 {
     maxRank = 30;
     sigSize = 1;
-    lineTransp = 10;
+    lineTransp = 80;
     highlight = false;
+}
+
+int sigFig::genTranp(double wei)
+{
+    int res = int(baseTrans + lineTransp * wei/standardWei);
+    return res<=192?res:192;
 }
 
 // 下面的sigSize是对疏密程度的修正比例
@@ -51,8 +57,10 @@ void sigFig::genDotXY(int r, int midX, int midY)
 
 void sigFig::genTxtXY(int r, int midX, int midY)
 {
-    xTxt = int(midX + r * cos(deg));
-    yTxt = int(midY + r * sin(deg));
+    double tmpR = deg>PI/2&&deg<PI*3/2?r+40:r;
+    xTxt = int(midX + tmpR * cos(deg));
+    yTxt = int(midY + tmpR * sin(deg));
+
 }
 
 // 汇集所有的生成函数
@@ -66,6 +74,7 @@ void sigFig::genAll(int r, int txtOff, double lasDeg, int lasR, double mxRk, int
     genDeg(r, lasDeg, lasR);
     genDotXY(r, midX, midY);
     genTxtXY(r + txtOff, midX, midY);
+//    genTranp();
 }
 
 // 画点和人名
@@ -90,12 +99,12 @@ void sigFig::paintDot(QMainWindow *q)
 
     pt.save();
     pt.translate(xTxt, yTxt);
-    pt.rotate(getDeg180());
+    pt.rotate(getDeg180N());
 //    pen.setWidth(txtWid);
     QFont font("黑体", txtWid, QFont::Bold, false);
     pt.setFont(font);
     pt.setPen(pen);
-    pt.drawText(0,0,rel->getName());
+    pt.drawText(0,int(dotR/4.0),rel->getName());
     pt.restore();
 }
 
@@ -106,19 +115,19 @@ QPair<int,int> sigFig::calDotXY(double dotDeg)
     return QPair<int,int>(xx,yy);
 }
 
-// 用绘制点的方法，生成1000个点集
-QList<QPoint> sigFig::genBesLine(QPoint a, QPoint b, QPoint c)
-{
-    QList<QPoint> res;
-    res.append(a);
-    for (double u = 0.001; u<1;u += 0.001)
-    {
-        QPoint tmpP = u*u*a + 2*u*(1-u)*b + (1-u)*(1-u)*c;
-        res.append(tmpP);
-    }
-    res.append(c);
-    return res;
-}
+//// 用绘制点的方法，生成1000个点集
+//QList<QPoint> sigFig::genBesLine(QPoint a, QPoint b, QPoint c)
+//{
+//    QList<QPoint> res;
+//    res.append(a);
+//    for (double u = 0.001; u<1;u += 0.001)
+//    {
+//        QPoint tmpP = u*u*a + 2*u*(1-u)*b + (1-u)*(1-u)*c;
+//        res.append(tmpP);
+//    }
+//    res.append(c);
+//    return res;
+//}
 
 int min(int a, int b) {return a>b?b:a;}
 
@@ -132,29 +141,36 @@ void sigFig::paintLine(QMainWindow *q, std::map<QString, double> degList, QStrin
 //    QPen pen(QColor(32,32,160,lineTransp));
 //    QPen pen(lineColor, lineTransp);
     if (highlight) lineColor = hlColor;
-    QPen pen(QColor(lineColor.red(),lineColor.green(), lineColor.blue(), lineTransp));
     for (QPair<QString,double>* qp: rel->getReList())
     {
+
         auto iter = degList.find(qp->first);
 //        int limitPos =  min(degList.size(),vitalNum) - 1;
         double limitDeg = degList.find(limitName)->second;
         if (iter != degList.end() && iter->second > deg && iter->second <= limitDeg)
         {
+            QPen pen(QColor(lineColor.red(),lineColor.green(), lineColor.blue(), genTranp(qp->second)));
+            if (highlight)
+                pen.setColor(QColor(lineColor.red(),lineColor.green(), lineColor.blue(), 192));
             QPair<int,int> resXY = calDotXY(iter->second);
             QPoint a(xDot,yDot);
             QPoint b(xMid,yMid);
             QPoint c(resXY.first,resXY.second);
             b = (1-lowSize)*(a+c)/2.0 + lowSize*b;
-            QList<QPoint> pts = genBesLine(a,b,c);
+//            QList<QPoint> pts = genBesLine(a,b,c);
+
+            QPainterPath path(a);
+            path.cubicTo(b,b,c);
 
             pt.save();
             int lineWid = (baseLineWid + maxLineOff * qp->second/standardWei);
             pen.setWidth(lineWid);
             pt.setPen(pen);
-            for(QPoint qpt:pts)
-            {
-                pt.drawPoint(qpt);
-            }
+//            for(QPoint qpt:pts)
+//            {
+//                pt.drawPoint(qpt);
+//            }
+            pt.drawPath(path);
             pt.restore();
         }
     }

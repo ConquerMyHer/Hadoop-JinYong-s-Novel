@@ -5,7 +5,7 @@ sigFigList::sigFigList()
     maxRank = 30;
     vitalNum = 30;
     sigSize = 1;
-    tranp = 10;
+    tranp = 80;
     sigLs = *new QList<sigFig*>();
 
     // 自定义可用的颜色列表
