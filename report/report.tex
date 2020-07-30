@@ -91,6 +91,8 @@
 \newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
 \newcommand*\diff{\mathop{}\!\mathrm{d}}
 
+\graphicspath{{img/}}
+
 \usepackage{multirow}
 \renewcommand\refname{reference}
 \author{组长：韩畅，组员：李展烁、王一之、闫旭芃}
@@ -102,18 +104,65 @@
 
 \section{实验规划与设计}
 \subsection{任务分配}
-{171860551, \text{韩畅：组长,算法设计与实验规划，任务六}}\\ \indent
-{171860550, \text{王一之：算法设计与实验规划,任务四}}\\ \indent
-{171860549, \text{闫旭芃：算法设计与实验规划，任务五}}\\ \indent
-{171840565, \text{李展烁：算法设计与实验规划,任务三}}
+{171860551, \text{韩畅：组长,算法设计与实验规划，任务一、任务六，程序试运行与组织debug研讨}}\\ \indent
+{171860550, \text{王一之：算法设计与实验规划，任务四，参与debug，实验版本控制}}\\ \indent
+{171860549, \text{闫旭芃：算法设计与实验规划，任务五，参与debug与数据核对}}\\ \indent
+{171840565, \text{李展烁：算法设计与实验规划，任务一优化、任务二、任务三，参与debug并提出重要优化思路}}
 \subsection{任务要求}
 
 \subsection{设计思路}
 
 
 \section{实验实现}
-\subsection{任务一}
-todo
+\subsection{任务一：数据预处理}
+\subsubsection{设计思路}
+数据输入：已经分词、分段的多篇中文文本文件
+\par 数据输出：每一段或几段中包含的所有人名，按顺序依次输出。
+\par 需要注意的是，由于我们的实验是对金庸全部人物关系的分析，
+因此无需特别地注意不同文件及文件名。
+\par 我们使用提供的名单列表，通过HashSet结构，快速地比对词语
+是否位于名单列表当中。
+\par 在装载名单列表时，由于姓名数量的有限性，且由于
+configuration只能传输字符串，
+因此使用一个私有的将其全部装载到
+一个字符串中，填入configuration中，
+并在map的setup阶段将其提取出来，
+并存储于HashSet中。
+\par 特别地，为了提高效率，注意使用StringBuilder和String的相互配合。
+
+\subsubsection{程序分析}
+Main 主函数类：
+\par 为了传递名单列表，调用NameLoader类的load方法，
+从输入的文件名中获取名单，并使用configuration进行配置以备后用。
+其余大多为路径、类名的配置，不赘述。如图\ref{task1-Main}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 15cm]{task1-Main.png}
+    \caption{主函数类具体实现}
+    \label{task1-Main}
+\end{figure}
+\par NameLoader类：
+\par 使用FileInputStream获取文件内容，使用BufferReader进行缓冲区文件读入操作。
+\par 使用StringBuilder快速从单行读入中获取姓名，并快速构建字符串。如图\ref{task1-NameLoader}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 15cm]{task1-NameLoader.png}
+    \caption{名单装载器具体实现}
+    \label{task1-NameLoader}
+\end{figure}
+
+\par Mapper类：
+\par 在setup中从configuration中获取之前装载的名单字符串，经过分词处理后，存入HashSet的名单表中。
+\par 在map的重载函数中，对每行也即每个value值以空格为分隔符分割，并依此使用HashSet的查找操作比对是否属于姓名。并将姓名归并为一个字符串输出。如图\ref{task1-mapper}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 15cm]{task1-mapper.png}
+    \caption{mapper具体实现}
+    \label{task1-mapper}
+\end{figure}
+
+\par Reducer类：
+\par 不做操作，直接将获取的值输出即可。
 
 \subsection{任务二}
 todo
@@ -167,13 +216,149 @@ $$
 \subsection{任务五}
 todo
 
-\subsection{任务六}
-todo
+\subsection{任务六：基于PageRank的可视化}
+\subsubsection{设计思路}
+金庸的全部武侠小说中总共包含人物一千余名，其存在的相互关联可能达到100K的等级，
+在这样庞杂的人物关系中，想要让全部的人物和关系呈现在受众面前，是不现实的。
+这一判断得到了很多前车之鉴的证实，例如使用gephi软件生成的关系图，如同一团乱麻，
+几乎看不清任何的姓名或关系，更枉谈“得到一些有趣的结论”。
+\par 在这样的前提下，我们选择了对可视化的内容进行取舍，将可视化的人物数量级从1000降低
+到了100的量级。同时对人物的重要性、人物关系的亲密度以PageRank及其排序的结果
+进行刻画，从而得到了比较好的视觉效果。
+\par 为了进行个性化的开发，我们选择了Qt作为可视化部分的开发平台，使用C++作为开发语言，
+编写了一个RelationPainter的程序，对数据进行个性化的、延拓性强的可视化操作。
+利用该程序，我们可以
+\begin{itemize}
+    \item 通过文件装载按钮，使用txt文件作为输入，直接获得效果图；
+    \item 通过关系曲线的粗细更直观地表示了人物关系的亲密程度；
+    \item 通过人物姓名和标识点的尺寸，可以更直观地感受人物的重要性；
+    \item 通过关系曲线的颜色，更清晰地辨别同一个人所具有的人物关系；
+    \item 通过关系曲线的高亮，更快地辨别某一特定个体的关系网；
+    \item 通过操控“显示最重要的n位人物”拖动条，控制显示在视野中的人数；
+    \item 通过操控“调整显示尺寸”拖动条，控制人物关系显示的疏密程度，从而避免人物的重叠；
+    \item 通过将人物名称和人物标识点围成圆环状，避免了姓名与人物关系线条的重叠。
+\end{itemize}
+该程序的上限很高，延拓性很广，我们将在后面相关章节中详细介绍其改进和优化思路。
+
+\subsubsection{程序分析}
+Relation 类：
+\par 这是一个刻画单个人物及与之相关的人物关系的类。
+其中，通过QList<QPair<QString,double>>
+维护了一个人物关系表，从而可以对于该人物相关的
+人物关系进行操作。如图\ref{task6-Relation}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 15cm]{task6-Relation.png}
+    \caption{单人物关系类具体实现}
+    \label{task6-Relation}
+\end{figure}
+
+\par sigFig 类：
+\par 这是一个以单人物关系为基础的单图元类。
+在这个类中，维护了一个Relation类对象以存储人物关系。
+同时根据其中图元绘制参数常量的值，在绘制之前更新其图元的
+各项属性（如粗细、颜色、大小、角度、位置、透明度等）,
+之后通过其中的绘制函数分别绘制人物标志点、人物名和人物关系曲线。
+一般来说，人物的PageRank值越高，人物名和标志点绘制得
+就越大越粗，而人物关系的权重越高，人物关系曲线就绘制得越粗。
+\par 特别的，由于我们将人物标志点和人物名
+绘制成圆盘状以避免重叠，而每个人物又在圆盘上
+占据不同的角度值，因此需要给每个人物图元在绘制前计算
+其在圆盘所占的角度。又因为每个单图元类没有其他图元的角度信息，
+因此在绘制关系曲线的时候，需要在更高层的类计算好
+角度对应表，并传入关系曲线的绘制函数。
+
+\par 由于类中大部分的方法为更新参数、获取
+或设置变量的方法，故不做展示，只集中展示
+genAll（更新所有参数），paintDot（绘制标志点），
+和paintLine（绘制标志曲线）三个函数的实现。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 15cm]{task6-sigFig-genAll.png}
+    \caption{单图元，全参数更新函数具体实现}
+    \label{task6-sigFig-genAll}
+\end{figure}
+在图\ref{task6-sigFig-genAll}中，我们看到，
+在对r（圆盘半径），midX、midY（屏幕中心X、y），mxRk（最大的PageRank值）
+设置过后，分别对CirWid（标志点粗细）、TxtWid（人物名粗细）、
+DotR（标志点大小）、Deg（标志点角度）、DotXY（标志点坐标）、
+TxtXY（人物名坐标）进行了更新。
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 15cm]{task6-sigFig-PaintDot.png}
+    \caption{单图元，绘制标志点函数具体实现}
+    \label{task6-sigFig-PaintDot}
+\end{figure}
+在图\ref{task6-sigFig-PaintDot}可以看到，在更新了全部的绘制
+参数后，使用Qpainter、QPen、QFont等变量对画笔进行了设置，
+将画笔移动一定的角度和坐标，并依此绘制圆和Text文本。
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 15cm]{task6-sigFig-PaintLine.png}
+    \caption{单图元，绘制关系曲线函数具体实现}
+    \label{task6-sigFig-PaintLine}
+\end{figure}
+在图\ref{task6-sigFig-PaintLine}中，首先判断是否需要设置高亮色，
+并根据之前更新的参数设置画笔，此时注意，QPen的颜色设置内多了一个透明度，
+由于我们是通过绘制点集的方式绘制的曲线，因此透明度需要设置得足够低
+才有效果（当透明度低时，可以略去很多无效的曲线关系信息）。
+特别注意到，传入的degList是一个其他图元的角度表，通过对此表
+的查询，才能正确获得关系曲线的目标点位置，从而使用我们自己实现
+的简单贝塞尔曲线正确生成关系曲线。同时注意到，图元本身角度和目标点
+角度的比较，可以确认目标点与本身的排名先后，与限制位的比较，
+可以判断本身及目标点是否处于需要绘制的点集内，从而判断是否需要绘制曲线。
+
+\par sigFigList 类：
+\par 作为一个统筹所有单图元的类，其主要的行为是对单图元的参数
+在宏观上进行调控，例如控制显示个数、疏密程度、分发颜色、更新角度表
+等操作。如图\ref{task6-sigFigList}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 15cm]{task6-sigFigList.png}
+    \caption{分发颜色、更新角度列表、更新疏密程度具体实现}
+    \label{task6-sigFigList}
+\end{figure}
+
+\par mainwindow 类：
+\par 对画布上产生的各类信号给出对应的槽进行处理，具体的任务交给
+fgLs去做。如载入文件、设置显示个数以及疏密程度的滚动条、鼠标移动
+设置高亮的判断等。如图\ref{task6-mainwindow}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 15cm]{task6-mainwindow.png}
+    \caption{mainwindow具体实现}
+    \label{task6-mainwindow}
+\end{figure}
+
+\subsubsection{结果展示}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 15cm]{task6-result.png}
+    \caption{可视化结果}
+    \label{task6-result}
+\end{figure}
+打开程序，导入文件并调整滚动条至合适位置，
+可以看到最重要的n位人物及其关系列表出现在屏幕
+中央。几条最粗的曲线彰显了郭靖与黄蓉、杨过与小龙女、
+胡斐与程灵素、慕容复与王语嫣、张无忌与周芷若
+等等人物之间的密切关系。通过不同的颜色，可以相对容易地查找与同一人物相关的人物关系。
 
 \section{实验经验总结与改进方向}
 \begin{enumerate}[1)]
     \item todo
     \item todo
+    \item todo
+    \item todo
+    \item todo
+    \item todo
+    \item 在任务六中，由于QPainter的绘制特性缘故，因此人物的姓名有一半是倒着的，造成观感不佳，需要解决。
+    \item 在任务六中，由于曲线使用点集绘制，而单点的绘制被自动设置为方形，因此曲线的形状不佳，需要改进。
+    \item 在任务六中，由于曲线使用的颜色的亮度、深浅不同，造成人物关系密切程度的直观性降低，需要改进颜色组。
+    \item 在任务六中，采用数据结构效率较低，对于冗余的判断和循环没有进行优化，造成操作上的延迟，需要优化。
+    \item 在任务六中，由于采用的是高Rank值的人物向低Rank值的人物绘制曲线，因此造成低rank值人物
+    快速无法快速辨认全部与其相关的人物关系。可以采用颜色的渐变进行优化。
+    \item 在任务六中，尚存在很多绘制参数没有在外部留出接口，例如透明度无法在用户界面设置，需要改进。
 \end{enumerate}
 \bibliographystyle{plain}
 \bibliography{ref}
