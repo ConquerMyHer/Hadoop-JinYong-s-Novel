@@ -45,3 +45,6 @@ hs_err_pid*
 *.mtc1
 *.out
 *.synctex.gz
+
+# pdf提交会有冲突
+*.pdf

@@ -165,8 +165,39 @@ Main 主函数类：
 \par 不做操作，直接将获取的值输出即可。
 
 \subsection{任务二}
-todo
+\subsubsection{设计思路}
+数据输入：每一段中包含的所有人名。
+\par 数据输出：对于所有的段落，统计所有人名对出现在同一段落中的次数。
+\par 使用HashSet进行去重。
+\par 同现次数在int可表示范围内。
 
+\subsubsection{程序分析}
+Main 主函数类：
+\par 这里使用了reducer作为combiner，在mapper之后进行一次合并，减少传输数据量，作为优化。如图\ref{task2-Main}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width = 15cm]{task2-Main.png}
+	\caption{主函数类具体实现}
+	\label{task2-Main}
+\end{figure}
+
+\par Mapper类：
+\par 使用HashSet来对于同一段落中所有人名进行去重。再使用双重for循环来发射所有两个不同人名构成的人名对。因为是在HashSet内遍历，这里判断两个String不相等，不需要使用Java的!equals()来判断String内容，只需要判断引用不同即可。如图\ref{task2-mapper}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width = 15cm]{task2-mapper.png}
+	\caption{mapper具体实现}
+	\label{task2-mapper}
+\end{figure}
+
+\par Reducer类：
+\par 对于所有的人名对出现次数进行求和。如图\ref{task2-reducer}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width = 15cm]{task2-reducer.png}
+	\caption{reducer具体实现}
+	\label{task2-reducer}
+\end{figure}
 \subsection{任务三}
 todo
 

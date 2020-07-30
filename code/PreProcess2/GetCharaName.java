@@ -34,8 +34,7 @@ class GetNameMapper extends Mapper<Object, Text, Text, NullWritable> {
         StringBuilder sb = new StringBuilder();// 使用stringBuilder快速对单行有效姓名进行连接
         for (String term : value.toString().split(" ")) {
             if (name_set.contains(term)) {
-                sb.append(term);
-                sb.append(" ");
+                sb.append(term).append(" ");
             }
         }
         // 使用空格分词，依次比对查找以后将有效姓名append到StringBuilder上
@@ -66,8 +65,7 @@ class NameLoader {
         String ll = "";
         StringBuilder strAllName = new StringBuilder();// 使用StringBuilder快速构建名单
         while((ll = bR.readLine()) != null) {// 获取单行不为空
-            strAllName.append(ll);
-            strAllName.append(" ");
+            strAllName.append(ll).append(" ");
         }
 
         fIS.close();

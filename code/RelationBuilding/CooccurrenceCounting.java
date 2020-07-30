@@ -20,10 +20,11 @@ import org.apache.hadoop.util.GenericOptionsParser;
 class CooccurrenceMapper extends Mapper<Object, Text, Text, IntWritable> {
     public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
         String[] names = value.toString().split(" ");
-        HashSet<String> names_set = new HashSet<>(Arrays.asList(names));
+        HashSet<String> names_set = new HashSet<>(Arrays.asList(names)); // 段落中所有人名的集合，目的是去重。
+        // 双重for循环，生成所有不同人名对。
         for (String name1 : names_set) {
             for (String name2 : names_set) {
-                if (name1 != name2) { // Here I think don't need using "equals".
+                if (name1 != name2) { // 这里不需要使用!equals()，只要!=就可以保证。
                     context.write(new Text("<" + name1 + "," + name2 + ">"), new IntWritable(1));
                 }
             }
@@ -31,18 +32,19 @@ class CooccurrenceMapper extends Mapper<Object, Text, Text, IntWritable> {
     }
 }
 
-
-class CooccurrencePartitioner extends HashPartitioner<Text, IntWritable> {
-    public int getPartition(Text key, IntWritable value, int numPartitions) {
-        String term = key.toString().split(",")[0];
-        return super.getPartition(new Text(term), value, numPartitions);
-    }
-}
+// 我觉得不需要Partition
+// class CooccurrencePartitioner extends HashPartitioner<Text, IntWritable> {
+//     public int getPartition(Text key, IntWritable value, int numPartitions) {
+//         String term = key.toString().split(",")[0];
+//         return super.getPartition(new Text(term), value, numPartitions);
+//     }
+// }
 
 
 class CooccurrenceReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
     public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
         int sum = 0;
+        //对人名对的同现次数进行求和统计。
         for (IntWritable value : values) {
             sum += value.get();
         }
@@ -63,12 +65,12 @@ public class CooccurrenceCounting {
         Job job = Job.getInstance(conf, "CooccurrenceCounting");
         job.setJarByClass(CooccurrenceCounting.class);
         job.setMapperClass(CooccurrenceMapper.class);
+        // 使用reducer作为combiner，进行优化。
         job.setCombinerClass(CooccurrenceReducer.class);
         job.setReducerClass(CooccurrenceReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
-//        job.setNumReduceTasks(10);
-        job.setPartitionerClass(CooccurrencePartitioner.class);
+        job.setNumReduceTasks(10);
 
         FileInputFormat.addInputPath(job, new Path(otherArgs[0]));
         FileOutputFormat.setOutputPath(job, new Path(otherArgs[1]));
