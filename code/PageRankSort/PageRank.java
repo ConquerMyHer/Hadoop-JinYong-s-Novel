@@ -1,3 +1,4 @@
+package PageRankSort;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -36,7 +37,7 @@ class PageRankMapper extends Mapper<Text, Text, Text, Text> {
         String relations = new String();
         if (value.toString().contains("#")) {// 不是第一次迭代
             rank = Double.parseDouble(value.toString().split("#")[0]); // 原本rank
-            relations = value.toString().split("#")[1];       // 出度表 格式为[名字,影响]|[名字,影响]|...其中影响为对key中人物的影响
+            relations = value.toString().split("#")[1];       // 出度表 格式为[名字,影响|名字,影响|...]其中影响为对key中人物的影响
         } else {//第一次迭代，设置默认rank
             rank = 1.0;                // 初始化rank值为1
             relations = value.toString(); // 出度表           
