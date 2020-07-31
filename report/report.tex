@@ -612,7 +612,7 @@ reducer中HashMap的使用是没有必要的。应该使用类似List<Pair<Strin
 \begin{enumerate}[1)]
     \item 原本迭代次数为20次，在检查中间结果时发现在14次之后，结果变化不大，基本收敛，因此将迭代次数改为15次，节省时间开销。
     \item 完整版的PageRank计算会引入随机跳转，避免自环节点以及无出度节点导致无法收敛。而本次数据实际不存在此类节点，因此无需引入，节省计算量。
-    \item PageRank算法原本RP值设置为访问概率1/N，实际上若PR值收敛，则结果与初始值无关。因此设置初始值为1.0以减小小数运算误差。
+    \item PageRank算法原本RP值设置为访问概率1/N，这样结果值为各节点的概率，和为1。但本次实验我们注重的是人物之间的相对重要程度，因此将PR放大N倍，设置初始值为1.0，从而以减小小数运算误差。
 \end{enumerate}
 \subsection{任务五}
 LPA当遇到二分图的时候，会出现标签震荡，这里当迭代轮数超过 10 轮后就会开始震荡，因此我们这里可以选择迭代 15 -20轮。
@@ -628,6 +628,161 @@ LPA当遇到二分图的时候，会出现标签震荡，这里当迭代轮数�
     快速无法快速辨认全部与其相关的人物关系。可以采用颜色的渐变进行优化。
     \item 尚存在很多绘制参数没有在外部留出接口，例如透明度无法在用户界面设置，需要改进。
 \end{enumerate}
+
+\section{Hadoop集群执行报告及结果展示}
+\subsection{执行指令}
+\subsubsection{任务一}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task1-1-input.png}
+    \caption{任务一指令}
+\end{figure}
+
+\subsubsection{任务二}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task2-1-input.png}
+    \caption{任务二指令}
+\end{figure}
+
+\subsubsection{任务三}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task3-1-input.png}
+    \caption{任务三指令}
+\end{figure}
+
+\subsubsection{任务四}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task4-1-input.png}
+    \caption{任务四指令1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task4-2-input.png}
+    \caption{任务一指令2}
+\end{figure}
+
+\subsubsection{任务五}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task5-1-input.png}
+    \caption{任务五指令1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task5-2-input.png}
+    \caption{任务五指令2}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task5-3-input.png}
+    \caption{任务五指令3}
+\end{figure}
+
+\subsection{WebUI}
+\subsubsection{任务一}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task1-1-success.png}
+    \caption{任务一WebUI}
+\end{figure}
+
+\subsubsection{任务二}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task2-1-success.png}
+    \caption{任务二WebUI}
+\end{figure}
+
+\subsubsection{任务三}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task3-1-success.png}
+    \caption{任务三WebUI}
+\end{figure}
+
+\subsubsection{任务四}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task4-1-success.png}
+    \caption{任务四WebUI1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task4-2-success.png}
+    \caption{任务四WebUI2}
+\end{figure}
+
+\subsubsection{任务五}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task5-1-success.png}
+    \caption{任务五WebUI1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task5-2-success.png}
+    \caption{任务五WebUI2}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task5-3-success.png}
+    \caption{任务五WebUI3}
+\end{figure}
+
+\subsection{部分结果展示}
+\subsubsection{任务一}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task1-1-output.png}
+    \caption{任务一结果}
+\end{figure}
+
+\subsubsection{任务二}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task2-1-output.png}
+    \caption{任务二结果}
+\end{figure}
+
+\subsubsection{任务三}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task3-1-output.png}
+    \caption{任务三结果}
+\end{figure}
+
+\subsubsection{任务四}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task4-1-output.png}
+    \caption{任务四结果1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task4-2-output.png}
+    \caption{任务四结果2}
+\end{figure}
+
+\subsubsection{任务五}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task5-1-output.png}
+    \caption{任务五结果1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task5-2-output.png}
+    \caption{任务五结果2}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{task5-3-output.png}
+    \caption{任务五结果3}
+\end{figure}
+
 
 \bibliographystyle{plain}
 \bibliography{ref}
