@@ -198,7 +198,37 @@ Main 主函数类：
 	\label{task2-reducer}
 \end{figure}
 \subsection{任务三}
-todo
+\subsubsection{设计思路}
+\par 数据输入：人名对出现在同一段落中的次数。
+\par 数据输出：对于所有人名，生成其人物关系邻接表。
+
+\subsubsection{程序分析}
+Main 主函数类：
+\par FileInputFormat使用KeyValueTextInputFormat。自动对于每行使用'\t'分割获取key和value。比默认的行号为Key，行内容为value更省事。如图\ref{task3-Main}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width = 15cm]{task3-Main.png}
+	\caption{主函数类具体实现}
+	\label{task3-Main}
+\end{figure}
+
+\par Mapper类：
+\par mapper发射人名对中的第一个人名作为key，第二个人名和同现次数作为value。以保证所有人名被发射到同一个reduce中。当然这里也可以使用naive的mapper来配合自定义Partitioner和Comparator来实现。如图\ref{task3-mapper}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width = 15cm]{task3-mapper.png}
+	\caption{mapper具体实现}
+	\label{task3-mapper}
+\end{figure}
+
+\par Reducer类：
+\par reducer对同一个人名，生成其邻接表。把同现的人名和对应的同现次数用HashMap<String, Integer>预存起来，同时统计所有同现次数之和。再遍历HashMap，利用StringBuilder生成对应邻接表的字符串形式。如图\ref{task3-reducer}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width = 15cm]{task3-reducer.png}
+	\caption{reducer具体实现}
+	\label{task3-reducer}
+\end{figure}
 
 \subsection{任务四:基于人物关系图的PageRank计算}
 \subsubsection{PageRank算法介绍}
@@ -260,14 +290,15 @@ value：PageRank\#[名字$_1$,影响$_1$|名字$_2$,影响$_2$|...|名字$_n$,�
 key：人物\\
 value：\#出度表\\
 此对目的在于维护出度表，value前加\#使reducer便于区分。\\
-之后计算PR值，记A的出度表集合为N,则计算过程如下式：
+记A的出度表集合为N,则A的新PR计算过程如下式：
 $$
 NewPR(A)=\sum_{x\in N}OldPR(x)*weight(x\rightarrow A)
 $$
-计算得到新的PR值，再输出一组键值对：
-key：人物\\
-value：新PageRank值\\
-在Reducer中，首先查看value前是否有\#号以区分该键值对类型。
+但此处不清楚N中其他任务的PR值，无法计算A的新PR，但由于同现关系构成的图为无向图，我们可以根据此关系计算A对N中所有人的影响，之后在Reduce阶段汇总即可。
+因此生成如下键值对：\\
+key：受影响人物\\
+value：受影响值\\
+在Reducer中，首先查看value前是否有\#号以区分该键值对类型。之后将受影响值累加得到新PR值。\\
 由于是一个迭代过程，将输出格式化，与Mapper的输入格式相同。\\
 
 阶段三：处理结果
@@ -594,7 +625,8 @@ fgLs去做。如载入文件、设置显示个数以及疏密程度的滚动条�
 \section{优化与改进}
 \subsection{任务二}
 \begin{itemize}
-    \item 数据格式中很多地方使用Text传输。可以考虑使用自定义Writable数据格式，来减少序列化时间和传输损耗。
+
+    \item 任务二中人物同现次数可以使用VIntWritable代替IntWritable，因为VIntWritable对于小整数会采用更短的长度，提高传输效率。而同现次数最大人物对<郭靖，黄蓉>仅为一千多。
     \item 统计人物同现时，可以考虑根据人物字母顺序，
     将<a,b>与<b,a>统一为<a,b>。这样任务二mapper和reducer之间
     减少一倍的传输损耗，任务二的输出结果将减少一倍占用空间，
@@ -606,7 +638,12 @@ fgLs去做。如载入文件、设置显示个数以及疏密程度的滚动条�
 \end{itemize}
 
 \subsection{任务三}
-reducer中HashMap的使用是没有必要的。应该使用类似List<Pair<String, Integer>>代替，加快reducer端时间、空间效率。
+\begin{itemize}
+	\item 数据格式中很多地方使用Text传输。可以考虑使用自定义Writable数据格式，来减少序列化时间和传输损耗。
+	\item reducer中HashMap的使用是没有必要的。应该使用类似List<Pair<String, Integer>>代替，加快reducer端时间、空间效率。
+	\item 实际上任务四和五的实现有一些“不合理”。比如某小喽啰只和郭靖同现过一次，这样小喽啰的邻接表中郭靖的权重是1，郭靖的邻接表中小喽啰的权重是0.001。这样实现，小喽啰对郭靖的影响权重成了1，郭靖对小喽啰的影响权重成了0.001。但是实际上，显然郭靖对于小喽啰的影响权重应该大，小喽啰对于郭靖的影响权重应该小。也就是说，邻接表中的每一条出边应该看成反向的影响权重，“出”边表应当看作入边表。但是修改任务四和五的代码实现是相当困难的，那样算法得重新设计。可以考虑在任务3之后加一个任务3.5，将“出”边表改成“入”边表。然后Page Rank和标签传播就不依赖任务3的输出，而是依赖任务3.5的输出，并且也不需要修改代码。
+	
+\end{itemize}
 
 \subsection{任务四}
 \begin{enumerate}[1)]
