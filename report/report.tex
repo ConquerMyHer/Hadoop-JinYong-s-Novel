@@ -46,7 +46,7 @@
 \footskip = 10pt
 \pagestyle{fancy}
 \lhead{2020, Spring}
-\chead{大数据综合处理实验}
+\chead{ }
 \rhead{金庸的江湖——金庸武侠小说中的人物关系挖掘}
 \cfoot{\thepage}
 \renewcommand{\headrulewidth}{1pt}  			%header
@@ -165,8 +165,38 @@ Main 主函数类：
 \par 不做操作，直接将获取的值输出即可。
 
 \subsection{任务二}
-todo
+\subsubsection{设计思路}
+\par 数据输入：每一段中包含的所有人名。
+\par 数据输出：对于所有的段落，统计所有人名对出现在同一段落中的次数。
+\par 使用IntWritable表示同现次数，因为同现次数在int可表示范围内。
 
+\subsubsection{程序分析}
+Main 主函数类：
+\par 这里使用了reducer作为combiner，在mapper之后进行一次合并，减少传输数据量，作为优化。如图\ref{task2-Main}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width = 15cm]{task2-Main.png}
+	\caption{主函数类具体实现}
+	\label{task2-Main}
+\end{figure}
+
+\par Mapper类：
+\par 使用HashSet来对于同一段落中所有人名进行去重。再使用双重for循环来发射所有两个不同人名构成的人名对。因为是在HashSet内遍历，这里判断两个String不相等，不需要使用Java的!equals()来判断String内容，只需要判断引用不同即可。如图\ref{task2-mapper}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width = 15cm]{task2-mapper.png}
+	\caption{mapper具体实现}
+	\label{task2-mapper}
+\end{figure}
+
+\par Reducer类：
+\par 对于key对应的人名对出现次数进行求和。如图\ref{task2-reducer}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width = 15cm]{task2-reducer.png}
+	\caption{reducer具体实现}
+	\label{task2-reducer}
+\end{figure}
 \subsection{任务三}
 todo
 
@@ -185,7 +215,7 @@ $$
 PR(A)=\frac{PR(B)}{L(B)}+\frac{PR(C)}{L(C)}+\frac{PR(D)}{L(D)}+...
 $$
 我们将每个网页抽象成一个节点，超链接抽象为有向边，共同构成一个图。
-则每次跳转可视为所有页面PR构成的特征向量R与该图的出度表矩阵相乘，即：\\
+则每次跳转可视为所有页面PR构成的特征向量R与该图的出度邻接矩阵M相乘，即：\\
 $$R=
 \begin{bmatrix}
     PR(p_1) \\
@@ -210,11 +240,218 @@ $$
 \subsubsection{设计思路}
 任务四的输入为任务三的输出，格式如下：\\
 人物 [名字$_1$,影响$_1$|名字$_2$,影响$_2$|...|名字$_n$,影响$_n$] \\
-影响$_i$为名字$_i$与该人物名字归一化后的同现次数，表示名字$_i$对该人物的影响权重。\\
-每个人物视为图的一个节点，边权重为二人同现次数
+影响$_i$ 为 名字$_i$ 与该人物归一化后的同现次数，表示 名字$_i$ 对该人物的影响权重。\\
+每个人物视为图的一个节点，边权重为二人同现次数。\\
+对于普通的PageRank计算，由于会存在自环边以及无出度的节点，为方式到达某一节点后陷入该点，会加入“随机浏览者”（random surfer）的概念，
+即到达某个节点后有一定概率直接跳转到任意一个节点，从而避免此情况。然而在此次任务中，首先没有自身与自身同现的情况，因此无自旋边；
+同时A与B同现，则B一定与A也同现，因此不考虑权重时所有边实际都为无向边，因此不存在出度为0的节点。所以此次任务无需引入“随机浏览者”。\\
 
-\subsection{任务五}
-todo
+MapReduce框架下，运算分布进行，因此不使用邻接矩阵，而采用邻接表的形式。算法大致分为三阶段：\\
+
+阶段一：预处理
+首先要将输入格式化为供之后迭代处理的形式。采用如下格式：
+key：人物\\
+value：PageRank\#[名字$_1$,影响$_1$|名字$_2$,影响$_2$|...|名字$_n$,影响$_n$] \\
+以概率为初始值，PageRank应设置为1/N，但N值较大，较小数字做乘法时误差较大，因此将初始PR设置为1来减小误差。\\
+
+阶段二：迭代计算
+迭代计算PR值，直到PR收敛。\\
+在Mapper中，首先输出如下键值对：
+key：人物\\
+value：\#出度表\\
+此对目的在于维护出度表，value前加\#使reducer便于区分。\\
+之后计算PR值，记A的出度表集合为N,则计算过程如下式：
+$$
+NewPR(A)=\sum_{x\in N}OldPR(x)*weight(x\rightarrow A)
+$$
+计算得到新的PR值，再输出一组键值对：
+key：人物\\
+value：新PageRank值\\
+在Reducer中，首先查看value前是否有\#号以区分该键值对类型。
+由于是一个迭代过程，将输出格式化，与Mapper的输入格式相同。\\
+
+阶段三：处理结果
+在Mapper阶段去除结果中的出度表，只保留PR值。\\
+利用Partition类进行排序，由于默认为升序，结果需要降序，因此重写DoubleWritable。
+因为只有1000余数据，未采用采样排序，使用了简单的全排序。\\
+Reducer阶段整理输出即可
+
+\subsubsection{代码讲解}
+程序可分为三个模块：PageRank、RageResultSort以及调度模块。\\\\
+
+模块一：PageRank\\
+此模块实现了了阶段一与阶段二的任务。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{PageRankMain.png}
+    \caption{PageRankMain}
+    \label{PageRankMain}
+\end{figure}
+图\ref{PageRankMain}为此类的main函数,使job运行15次，每次的结果储存在以运行次数为名的文件夹内，
+下一次迭代的输入为上一次的输出。最终结果储存在“final”文件夹下。由于程序中用不到行号，设置InputFormat为KeyValueTextInputFormat，
+这样会自动以分隔符(默认为$\backslash$t)将一行的内容切割为key和value。\\
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{PageRankMapper.png}
+    \caption{PageRankMapper}
+    \label{PageRankMapper}
+\end{figure}
+图\ref{PageRankMapper}为Mapper函数，此阶段,首先通过value中是否有\#号来判断是否是第一次迭代。
+若为不为第一次，提取之前的RP，否则设置默认的PR值为1.0。通过value中的出度表，计算新PR值。向reducer发送“姓名 \#出度表”
+以及“姓名 PR值”两个键值对。\\
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{PageRankReducer.png}
+    \caption{PageRankReducer}
+    \label{PageRankReducer}
+\end{figure}
+图\ref{PageRankReducer}为Reducer函数,通过\#判断键值对类型，合并格式化后输出。\\\\
+
+模块二：PageResultSort\\
+此模块实现了阶段三的任务。\\
+main函数中同样设置InputFormat为KeyValueTextInputFormat，同时设置reducer数量为1。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{PageSortMapper.png}
+    \caption{PageSortMapper}
+    \label{PageSortMapper}
+\end{figure}
+图\ref{PageSortMapper}为Mapper函数，去除不需要的出度表。为进行排序，将PR值作为key，名字作为value。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{SortDoubleWritable.png}
+    \caption{SortDoubleWritable}
+    \label{SortDoubleWritable}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{RankSortPartitioner.png}
+    \caption{RankSortPartitioner}
+    \label{RankSortPartitioner}
+\end{figure}
+图\ref{RankSortPartitioner}与图\ref{SortDoubleWritable}为重载的Partitioner函数以及SortDoubleWritable类。
+重载Partitioner函数使得以DoubleWritable类型的key进行排序，由于默认DoubleWritable为升序，重载DoubleWritable为自定义SortDoubleWritable进行降序排列。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 15cm]{PageSortReducer.png}
+    \caption{PageSortReducer}
+    \label{PageSortReducer}
+\end{figure}
+图\ref{PageSortReducer}为Ruducer，将key与value互换位置，保证输出时名字在前。
+
+\subsection{任务五:在人物关系图上的标签传播}
+思路分析：在本实验里，我们拟采用 LPA(Label Propagation Algorithm) 标签传播算法对金庸小说中的人物进行聚类。 LPA 是一种半监督的图分析算法，能够为图中的每一个节点打上标签，对图的顶点进行聚类，从而在一张类似社交网络的图中完成社区发现。
+\subsubsection{LPA算法介绍}
+\textbf{算法思路：}\par
+对于网络中的每一个节点，在初始阶段，Label Propagation算法对于每一个节点都会初始化一个唯一的一个标签。每一次迭代都会根据与自己相连的节点所属的标签改变自己的标签，更改的原则是选择与其相连的节点中所属标签最多的社区标签为自己的社区标签，这就是标签传播的含义了。随着社区标签不断传播。最终，连接紧密的节点将有共同的标签。\par
+\textbf{算法过程：}\\
+第一步：先给每个节点分配对应标签，即节点1对应标签1，节点i对应标签i；\\
+第二步：遍历N个节点（for i=1：N），找到对应节点邻居，获取此节点邻居标签，找到出现次数最大标签，若出现次数最多标签不止一个，则随机选择一个标签替换成此节点标签；\\
+第三步：若本轮标签重标记后，节点标签不再变化（或者达到设定的最大迭代次数），则迭代停止，否则重复第二步\\
+具体伪代码如下图：
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[width = 15cm]{LPAcode.jpg}
+
+    \caption{LPA算法伪代码}
+\end{figure}
+对于金庸小说中的人物关系的标签分析来说，其中人物的网络可以看成一个每条边带权值的有向图，因此我们的算法也要在此基础上做一些改变。首先我们还是对每一个顶点进行初始化，然后每一个顶点根据自己的出边向邻接顶点发送自己的标签。最后每个顶点从自己收到的标签里取权值和最大的标签作为自己新的标签（原算法的出现次数之和需要改成权值之和），相当于原算法中。当每一个顶点 的标签不再改变时，算法终止。\par
+具体分为3个部分进行:
+\subsubsection{第一部分： LabelInitial 社区初始化}
+第一个阶段，初始化每一个顶点，将每一个节点的人物姓名作为该节点的标签。(人名，(标签\#邻接表))\par
+Map：一行一行分析实验三的输出结果，直接将每个顶点的人名作为每个顶点的标签，输出  \par
+Reduce：不做任何处理直接输出 (人名，(标签\#邻接表))\par
+\textbf{Mapper类：}\par
+一行行读入任务三输出的结果 ( 人名，邻接表 )，然后将人名作为该任务的标签以 ( 人名，(标签，邻接表)) 的形式输出。初始时，每一个节点都是一个独立的社区，所以这里直接将标签赋值成该节点的人物姓名即可\\
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[width = 15cm]{5-1mapper.jpg}
+
+    \caption{LabelInitial Mapper}
+\end{figure}
+
+\textbf{Reduce类：}\par
+直接输出即可，同时在main函数中设置job.setNumReduceTasks=1输出一个文件即可\\
+
+\subsubsection{第二部分：LabelAnalyse LPA社区聚类迭代}
+第二个阶段，读入第一部分处理好的数据，分别发送邻接表(节点，邻接表)和每一条边（即(节点的邻居人名，节点标签:二者所连边的权重)），之后利用相同key将同一个节点和不同标签的边分在同一个reducer的同一个组里面，之后选择出现权重和最大的标签作为新的标签即可。之后累次循环迭代直到标签稳定。\par
+同时，LPA当遇到二分图的时候，会出现标签震荡，这里当迭代轮数超过 10 轮后就会开始震荡，因此我们这里可以选择迭代 15 -20轮。\par
+
+\textbf{伪代码：}\par
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[width = 15cm]{5-2code.jpg}
+
+    \caption{LabelAnalyse伪代码}
+\end{figure}
+\paragraph{具体程序：}
+\subparagraph{1. Mapper类：}
+\par 首先读入第一部初始化好的数据，首先发送(原节点人名，\#邻接表)用于维护每一个节点的网络结构，以便下一次迭代使用
+\par 然后拆开邻接表中每一个邻居节点，将邻居节点姓名作为key，将该节点标签和权值作为value，发送(节点的邻居人名，节点标签:二者所连边的权重)
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[width = 15cm]{5-2MAPPER.jpg}
+
+    \caption{LabelAnalyse Mapper}
+\end{figure}
+\subparagraph{1. Reducer类：}
+\par 当读入 ( 人名, \#邻接表 )时，直接保存邻接表维护网络结构，以便下一次迭代使用。
+\par 当读入（节点的邻居人名，节点标签:二者所连边的权重）时，首先创建一个HashMap 数据结构，维护每一个（标签，权重），循环读入所有的这种输入。如果收到的该标签还没有出现过，那么以标签为key，权值为value插入哈希表中。如果标签已经出现过，则标签权值在原来的权值基础上累加上去。
+\par 然后循环比较，取权值和最大的标签作为新的标签，还是以原来的格式(节点名称，标签\#邻接表) 输出作为结果
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[width = 15cm]{5-2reducer.jpg}
+
+    \caption{LabelAnalyse Reducer}
+\end{figure}
+\subparagraph{1. Main函数：}
+设置一个循环即可，循环20次，每次的输出变成下一次的输入
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[width = 15cm]{5-2main.jpg}
+
+    \caption{LabelAnalyse Main函数}
+\end{figure}
+\subsubsection{第三部分：LabelResult 结果整理（包括任务六的一部分）}
+\par 这里因为第二部分输出的结果中还有邻接表的存在，而且结果比较杂乱，所以直接将任务六数据整理整合到这一部分。在mapper中读入(节点名，标签\#邻接表)，去除邻接表，并且将标签和节点名反转，将标签设置成key，输出(标签，节点名)以便之后归类
+\par 其中重写了partition类，将首字母拼音在a-h，h-p，p-z分为三个区域，分三个文件存储，这个功能可加可不加，如果不加的话那么就输出一个文件，文件中相同标签会在一起，比较直观。
+\par reducer部分直接输出((标签,人名),空)
+\begin{figure}[H]
+    \centering
+    \subfigure[LabelResult Mapper]
+	{
+		\includegraphics[width = 15cm]{5-3mapper.jpg}
+	}
+	\vfill
+	\subfigure[LabelResult Reducer]
+	{
+		\includegraphics[width = 15cm]{5-3reducer.jpg}
+	}
+	\vfill
+	\subfigure[LabelResult Partitioner]
+	{
+		\includegraphics[width = 15cm]{5-3partitioner.jpg}
+	}
+	
+	\caption{LabelResult 部分代码截图}
+\end{figure}
+\subsubsection{总结：}
+\paragraph{LPA算法优点：}
+\par LPA算法的最大的优点就是算法的逻辑非常简单，相对于优化模块度算法的过程是非常快的，不用pylouvain那样的多次迭代优化过程。
+\par LPA算法利用自身的网络的结构指导标签传播，这个过程是无需任何的任何的优化函数，而且算法初始化之前是不需要知道社区的个数的，随着算法迭代最后可以自己知道最终有多少个社区
+利用MapReduce可以很好的利用其特性来进行迭代分析
+\paragraph{LPA算法缺点：}
+\par 划分结果不稳定，随机性强是这个算法致命的缺点。具体体现在：
+\subparagraph{1. 更新顺序：}
+节点标签更新顺序随机，但是很明显，越重要的节点越早更新会加速收敛过程；
+\subparagraph{2. 随机选择：}
+如果一个节点的出现次数最大的邻居标签不止一个时，随机选择一个标签作为自己标签。这种随机性可能会带来一个雪崩效应，即刚开始一个小小的聚类错误会不断被放大。不过如果相似邻居节点出现多个，可能是权重weight计算的逻辑有问题，需要回过头去优化weight抽象和计算逻辑；
 
 \subsection{任务六：基于PageRank的可视化}
 \subsubsection{设计思路}
@@ -344,14 +581,37 @@ fgLs去做。如载入文件、设置显示个数以及疏密程度的滚动条�
 胡斐与程灵素、慕容复与王语嫣、张无忌与周芷若
 等等人物之间的密切关系。通过不同的颜色，可以相对容易地查找与同一人物相关的人物关系。
 
+\section{优化与改进}
+\subsection{任务一}
+todo
+
+\subsection{任务二}
+todo
+
+\subsection{任务三}
+todo
+
+\subsection{任务四}
+\begin{enumerate}[1)]
+    \item 原本迭代次数为20次，在检查中间结果时发现在14次之后，结果变化不大，基本收敛，因此将迭代次数改为15次，节省时间开销。
+    \item 完整版的PageRank计算会引入随机跳转，避免自环节点以及无出度节点导致无法收敛。而本次数据实际不存在此类节点，因此无需引入，节省计算量。
+    \item PageRank算法原本RP值设置为访问概率1/N，实际上若PR值收敛，则结果与初始值无关。因此设置初始值为1.0以减小小数运算误差。
+\end{enumerate}
+\subsection{任务五}
+LPA当遇到二分图的时候，会出现标签震荡，这里当迭代轮数超过 10 轮后就会开始震荡，因此我们这里可以选择迭代 15 -20轮。
+通过对实验五的结果进行分析，我们可以看出，相同标签的人物都是在同一本书中的人物。但因为人物同现关
+系窗口选择的大小问题，会出现一些很小的簇或者孤岛
+\subsection{任务六}
+todo
 \section{实验经验总结与改进方向}
 \begin{enumerate}[1)]
+    \item 数据格式中很多地方使用Text传输。可以考虑使用自定义Writable数据格式，来减少序列化时间和传输损耗。
+    \item 任务二统计人物同现时，可以考虑根据人物字母顺序，将<a,b>与<b,a>统一为<a,b>。这样任务二mapper和reducer之间减少一倍的传输损耗，任务二的输出结果将减少一倍占用空间，任务三mapper读、任务二reducer写也将减少一倍读写文件时间损耗。实现时可以将任务二mapper中HashSet用TreeSet代替来保证有序，在内部for循环中只发射在外部for循环当前值之后（或之前）的部分。当然任务三中mapper就要修改为：既发射第一个人名又发射第二个人名。之后保持不变。当然也要考虑到TreeSet比HashSet可能要消耗更多时间。
+    \item 任务三reducer中HashMap的使用是没有必要的。应该使用类似List<Pair<String, Integer>>代替，加快reducer端时间、空间效率。
     \item todo
     \item todo
-    \item todo
-    \item todo
-    \item todo
-    \item todo
+    \item 在任务五中，对结果进行分析，我们可以看出，相同标签的人物都是在同一本书中的人物。但因为人物同现关
+系窗口选择的大小问题，会出现一些很小的簇或者孤岛
     \item 在任务六中，由于QPainter的绘制特性缘故，因此人物的姓名有一半是倒着的，造成观感不佳，需要解决。
     \item 在任务六中，由于曲线使用点集绘制，而单点的绘制被自动设置为方形，因此曲线的形状不佳，需要改进。
     \item 在任务六中，由于曲线使用的颜色的亮度、深浅不同，造成人物关系密切程度的直观性降低，需要改进颜色组。

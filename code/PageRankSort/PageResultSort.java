@@ -37,7 +37,6 @@ class SortDoubleWritable extends DoubleWritable { // 自定义DoubleWritable类 
 }
 
 class PageSortMapper extends Mapper<Text, Text, SortDoubleWritable, Text> {
-	// private Text resKey = new Text(); // 要传入reduce的key和value
 	private SortDoubleWritable rKey = new SortDoubleWritable();
 	private Text rValue = new Text();
 
@@ -55,7 +54,6 @@ class PageSortMapper extends Mapper<Text, Text, SortDoubleWritable, Text> {
 class RankSortPartitioner extends HashPartitioner<SortDoubleWritable, Text> {// 重写HashPartitioner
 	@Override
 	public int getPartition(SortDoubleWritable key, Text value, int numReduceTasks) {// 重载getPartition函数，自定义的SortDoubleWritable类
-		// TODO Auto-generated method stub
 		return super.getPartition(key, value, numReduceTasks);
 	}
 	

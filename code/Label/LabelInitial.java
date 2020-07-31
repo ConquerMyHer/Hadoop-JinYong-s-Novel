@@ -25,7 +25,6 @@ class LabeliniMapper extends Mapper<Text, Text, Text, Text> {
         rKey.set(name);
         rValue.set(name+"#"+Lablelist);
         context.write(rKey, rValue);
-        //context.write(new Text(name), new Text(name + "#" + list));
     }
 }
 
@@ -64,8 +63,6 @@ public class LabelInitial {
         }
         //设置任务输出数据的保存路径；
         FileOutputFormat.setOutputPath(job, new Path(otherArgs[1]));
-        //调用job.waitForCompletion(true) 执行任务，执行成功后退出；
-        //job.waitForCompletion(true);
         job.waitForCompletion(true);
     }
 }
