@@ -28,16 +28,16 @@ class RelationMapper extends Mapper<Text, Text, Text, Text> {
 
 class RelationReducer extends Reducer<Text, Text, Text, Text> {
     public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-        StringBuilder newValue = new StringBuilder("[");
-        int sum = 0;
-        HashMap<String, Integer> weights = new HashMap<>();
+        StringBuilder newValue = new StringBuilder("["); // 邻接表对应的字符串。
+        int sum = 0; // 该人名所有同现次数之和。
+        HashMap<String, Integer> weights = new HashMap<>(); // 相应同现人物以及同现次数的Map。
         for (Text value : values) {
             String[] name_weight = value.toString().split(" ");
             Integer weight = Integer.parseInt(name_weight[1]);
             weights.put(name_weight[0], weight);
             sum += weight;
         }
-        for (Map.Entry<String, Integer> entry : weights.entrySet()) {
+        for (Map.Entry<String, Integer> entry : weights.entrySet()) { // 遍历以生成邻接表。
             double percent = entry.getValue() / (double) sum;
             newValue.append(entry.getKey()).append(",").append(String.format("%.6f", percent)).append("|");
         }
