@@ -47,4 +47,4 @@ hs_err_pid*
 *.synctex.gz
 
 # pdf提交会有冲突
-*.pdf
+#*.pdf
