@@ -156,19 +156,7 @@ void MainWindow::myMouseMoveHandler(QMouseEvent * e)
         {
             fgLs.sigLs[i]->setHighLight(false);
         }
-        //        if (abs(curX-dotX) + abs(curY-dotY)<=hlDistance && sf->getHighLight() == false)
-        //        {
-        //            sf->setHighLight(true);
-        ////            qDebug() << "dotX : " << dotX << ", dotY : " << dotY << endl;
-        //            this->repaint();
-        //        }
-        //        else if ((abs(curX-dotX) + abs(curY-dotY) > hlDistance) && sf->getHighLight() == true)
-        //        {
-        //            sf->setHighLight(false);
-        ////            qDebug() << "dotX : " << dotX << ", dotY : " << dotY << endl;
-        //            this->repaint();
 
-        //        }
     }
     if (curMinDisInd != curHlInd)
     {
